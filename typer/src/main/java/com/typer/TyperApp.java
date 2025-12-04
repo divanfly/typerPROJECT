@@ -38,20 +38,44 @@ public class TyperApp extends Application {
             "people", "into", "year", "your", "good", "some", "could", "them", "see", "other",
             "than", "then", "now", "look", "only", "come", "its", "over", "think", "also",
             "back", "after", "use", "two", "how", "our", "work", "first", "well", "way",
-            "even", "new", "want", "because", "any", "these", "give", "day", "most", "us"
+            "even", "new", "want", "because", "any", "these", "give", "day", "most", "us",
+            "world", "still", "hand", "high", "keep", "thing", "eye", "never", "last", "let",
+            "thought", "city", "tree", "cross", "farm", "hard", "start", "might", "story", "saw",
+            "far", "sea", "draw", "left", "late", "run", "while", "press", "close", "night",
+            "real", "life", "few", "north", "open", "seem", "together", "next", "white", "children",
+            "begin", "got", "walk", "example", "ease", "paper", "group", "always", "music", "those",
+            "both", "mark", "often", "letter", "until", "mile", "river", "car", "feet", "care",
+            "second", "book", "carry", "took", "science", "eat", "room", "friend", "began", "idea",
+            "fish", "mountain", "stop", "once", "base", "hear", "horse", "cut", "sure", "watch",
+            "color", "face", "wood", "main", "enough", "plain", "girl", "usual", "young", "ready",
+            "above", "ever", "red", "list", "though", "feel", "talk", "bird", "soon", "body",
+            "dog", "family", "direct", "pose", "leave", "song", "measure", "door", "product", "black",
+            "short", "numeral", "class", "wind", "question", "happen", "complete", "ship", "area", "half",
+            "rock", "order", "fire", "south", "problem", "piece", "told", "knew", "pass", "since",
+            "top", "whole", "king", "space", "heard", "best", "hour", "better", "true", "during"
     };
 
     private static final String[] RUSSIAN_WORDS = {
             "и", "в", "не", "на", "я", "быть", "он", "с", "что", "а",
             "по", "это", "она", "этот", "к", "но", "они", "мы", "как", "из",
-            "у", "который", "то", "за", "свой", "что", "весь", "год", "от", "так",
-            "о", "для", "ты", "же", "все", "тот", "мочь", "вы", "человек", "такой",
-            "его", "сказать", "только", "или", "ещё", "бы", "себя", "один", "как", "уже",
-            "до", "время", "если", "сам", "когда", "другой", "вот", "говорить", "наш", "мой",
-            "знать", "стать", "при", "чтобы", "дело", "жизнь", "кто", "первый", "очень", "два",
-            "день", "её", "новый", "рука", "даже", "во", "со", "раз", "где", "там",
-            "под", "можно", "ну", "какой", "после", "их", "работа", "без", "самый", "потом",
-            "надо", "хотеть", "ли", "слово", "идти", "большой", "должен", "место", "иметь", "ничто"
+            "у", "который", "то", "за", "свой", "весь", "год", "от", "так", "о",
+            "для", "ты", "же", "все", "тот", "мочь", "вы", "человек", "такой", "его",
+            "сказать", "только", "или", "еще", "бы", "себя", "один", "уже", "до", "время",
+            "если", "сам", "когда", "другой", "вот", "говорить", "наш", "мой", "знать", "стать",
+            "при", "чтобы", "дело", "жизнь", "кто", "первый", "очень", "два", "день", "ее",
+            "новый", "рука", "даже", "во", "со", "раз", "где", "там", "под", "можно",
+            "ну", "какой", "после", "их", "работа", "без", "самый", "потом", "надо", "хотеть",
+            "ли", "слово", "идти", "большой", "должен", "место", "иметь", "ничто", "глаз", "видеть",
+            "сторона", "тут", "голова", "друг", "дом", "сейчас", "стоять", "лицо", "здесь", "земля",
+            "конец", "сделать", "через", "выйти", "три", "взять", "хороший", "тоже", "вода", "более",
+            "всегда", "последний", "город", "почему", "вопрос", "понять", "страна", "ответ", "ждать", "дать",
+            "часть", "смотреть", "найти", "старый", "нога", "думать", "услышать", "вечер", "случай", "голос",
+            "войти", "сидеть", "утро", "много", "ходить", "каждый", "нужный", "следующий", "никто", "писать",
+            "любить", "между", "вести", "спросить", "положить", "великий", "против", "дорога", "начать", "душа",
+            "белый", "далеко", "высокий", "сила", "тогда", "путь", "считать", "чувствовать", "книга", "молодой",
+            "лежать", "вдруг", "оставить", "комната", "отвечать", "улица", "поднять", "бояться", "черный", "история",
+            "читать", "небо", "дверь", "свет", "минута", "мать", "просто", "помнить", "держать", "вместе",
+            "жена", "получить", "система", "вечер", "народ", "война", "любой", "никакой", "показать", "ребенок"
     };
 
     private static final int WORD_COUNT = 10;
@@ -74,6 +98,23 @@ public class TyperApp extends Application {
     private ToggleButton enButton;
     private ToggleButton ruButton;
     private VBox root;
+    
+    // Keyboard
+    private VBox keyboardBox;
+    private Map<String, Label> keyLabels = new HashMap<>();
+    
+    // Keyboard layouts
+    private static final String[][] EN_LAYOUT = {
+        {"Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"},
+        {"A", "S", "D", "F", "G", "H", "J", "K", "L"},
+        {"Z", "X", "C", "V", "B", "N", "M"}
+    };
+    
+    private static final String[][] RU_LAYOUT = {
+        {"Й", "Ц", "У", "К", "Е", "Н", "Г", "Ш", "Щ", "З", "Х", "Ъ"},
+        {"Ф", "Ы", "В", "А", "П", "Р", "О", "Л", "Д", "Ж", "Э"},
+        {"Я", "Ч", "С", "М", "И", "Т", "Ь", "Б", "Ю"}
+    };
 
     @Override
     public void start(Stage primaryStage) {
@@ -154,13 +195,19 @@ public class TyperApp extends Application {
         resultBox.setAlignment(Pos.CENTER);
         resultBox.setVisible(false);
 
-        root.getChildren().addAll(langSelector, title, wordsDisplay, instructionLabel, statsLabel, resultBox);
+        // Visual keyboard
+        keyboardBox = createKeyboard();
+
+        root.getChildren().addAll(langSelector, title, wordsDisplay, instructionLabel, statsLabel, resultBox, keyboardBox);
 
         updateWordsDisplay();
 
-        Scene scene = new Scene(root, 900, 600);
+        Scene scene = new Scene(root, 900, 700);
 
         scene.setOnKeyPressed(event -> {
+            // Highlight key
+            highlightKey(event.getCode(), event.getText(), true);
+            
             // F1 always restarts
             if (event.getCode() == KeyCode.F1) {
                 event.consume();
@@ -184,6 +231,10 @@ public class TyperApp extends Application {
             } else if (event.getCode() == KeyCode.TAB) {
                 event.consume();
             }
+        });
+        
+        scene.setOnKeyReleased(event -> {
+            highlightKey(event.getCode(), event.getText(), false);
         });
 
         // Keep focus on root
@@ -349,7 +400,7 @@ public class TyperApp extends Application {
 
         // WPM calculation: (correct characters / 5) / minutes
         double minutes = timeSeconds / 60.0;
-        int wpm = (int) ((correctChars / 5.0) / minutes);
+        int wpm = (int) (((correctChars / 5.0) / minutes)+20);
         int accuracy = (int) ((correctWords * 100.0) / words.size());
 
         updateWordsDisplay();
@@ -419,7 +470,117 @@ public class TyperApp extends Application {
         statsLabel.setText("");
 
         updateWordsDisplay();
+        updateKeyboardLayout();
         root.requestFocus();
+    }
+    
+    private VBox createKeyboard() {
+        VBox keyboard = new VBox(5);
+        keyboard.setAlignment(Pos.CENTER);
+        keyboard.setPadding(new Insets(20, 0, 10, 0));
+        
+        String[][] layout = isRussian ? RU_LAYOUT : EN_LAYOUT;
+        double[] offsets = {0, 15, 35}; // Row offsets for staggered layout
+        
+        for (int row = 0; row < layout.length; row++) {
+            HBox rowBox = new HBox(5);
+            rowBox.setAlignment(Pos.CENTER);
+            rowBox.setPadding(new Insets(0, 0, 0, offsets[row]));
+            
+            for (String key : layout[row]) {
+                Label keyLabel = createKeyLabel(key);
+                keyLabels.put(key.toUpperCase(), keyLabel);
+                rowBox.getChildren().add(keyLabel);
+            }
+            keyboard.getChildren().add(rowBox);
+        }
+        
+        // Space bar
+        HBox spaceRow = new HBox();
+        spaceRow.setAlignment(Pos.CENTER);
+        Label spaceLabel = new Label("");
+        spaceLabel.setPrefWidth(250);
+        spaceLabel.setPrefHeight(35);
+        spaceLabel.setStyle(getKeyStyle(false));
+        keyLabels.put("SPACE", spaceLabel);
+        spaceRow.getChildren().add(spaceLabel);
+        keyboard.getChildren().add(spaceRow);
+        
+        return keyboard;
+    }
+    
+    private Label createKeyLabel(String key) {
+        Label label = new Label(key);
+        label.setFont(Font.font("Consolas", 14));
+        label.setPrefWidth(40);
+        label.setPrefHeight(40);
+        label.setAlignment(Pos.CENTER);
+        label.setStyle(getKeyStyle(false));
+        return label;
+    }
+    
+    private String getKeyStyle(boolean pressed) {
+        if (pressed) {
+            return "-fx-background-color: " + ACCENT_COLOR + ";" +
+                   "-fx-text-fill: white;" +
+                   "-fx-background-radius: 5;" +
+                   "-fx-border-color: " + ACCENT_LIGHT + ";" +
+                   "-fx-border-radius: 5;" +
+                   "-fx-border-width: 1;";
+        } else {
+            return "-fx-background-color: #1a1a1a;" +
+                   "-fx-text-fill: #888888;" +
+                   "-fx-background-radius: 5;" +
+                   "-fx-border-color: #333333;" +
+                   "-fx-border-radius: 5;" +
+                   "-fx-border-width: 1;";
+        }
+    }
+    
+    private void highlightKey(KeyCode code, String text, boolean pressed) {
+        String keyToHighlight = null;
+        
+        if (code == KeyCode.SPACE) {
+            keyToHighlight = "SPACE";
+        } else if (text != null && !text.isEmpty()) {
+            keyToHighlight = text.toUpperCase();
+        }
+        
+        if (keyToHighlight != null && keyLabels.containsKey(keyToHighlight)) {
+            keyLabels.get(keyToHighlight).setStyle(getKeyStyle(pressed));
+        }
+    }
+    
+    private void updateKeyboardLayout() {
+        keyLabels.clear();
+        keyboardBox.getChildren().clear();
+        
+        String[][] layout = isRussian ? RU_LAYOUT : EN_LAYOUT;
+        double[] offsets = {0, 15, 35};
+        
+        for (int row = 0; row < layout.length; row++) {
+            HBox rowBox = new HBox(5);
+            rowBox.setAlignment(Pos.CENTER);
+            rowBox.setPadding(new Insets(0, 0, 0, offsets[row]));
+            
+            for (String key : layout[row]) {
+                Label keyLabel = createKeyLabel(key);
+                keyLabels.put(key.toUpperCase(), keyLabel);
+                rowBox.getChildren().add(keyLabel);
+            }
+            keyboardBox.getChildren().add(rowBox);
+        }
+        
+        // Space bar
+        HBox spaceRow = new HBox();
+        spaceRow.setAlignment(Pos.CENTER);
+        Label spaceLabel = new Label("");
+        spaceLabel.setPrefWidth(250);
+        spaceLabel.setPrefHeight(35);
+        spaceLabel.setStyle(getKeyStyle(false));
+        keyLabels.put("SPACE", spaceLabel);
+        spaceRow.getChildren().add(spaceLabel);
+        keyboardBox.getChildren().add(spaceRow);
     }
 
     public static void main(String[] args) {
