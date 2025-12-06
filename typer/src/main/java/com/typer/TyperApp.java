@@ -14,6 +14,10 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
+import javafx.animation.*;
+import javafx.util.Duration;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.GaussianBlur;
 
 import java.util.*;
 
@@ -176,6 +180,12 @@ public class TyperApp extends Application {
         Label title = new Label("typer");
         title.setFont(Font.font("Consolas", 48));
         title.setTextFill(Color.web(ACCENT_COLOR));
+        
+        // Тень для заголовка
+        DropShadow titleShadow = new DropShadow();
+        titleShadow.setColor(Color.web(ACCENT_COLOR, 0.3));
+        titleShadow.setRadius(10);
+        title.setEffect(titleShadow);
 
         // отображ. слов
         wordsDisplay = new TextFlow();
@@ -254,7 +264,13 @@ public class TyperApp extends Application {
                     if (!testStarted) {
                         testStarted = true;
                         startTime = System.currentTimeMillis();
-                        instructionLabel.setText("");
+                        
+                        // Плавное исчезновение инструкции
+                        FadeTransition fadeOut = new FadeTransition(Duration.millis(300), instructionLabel);
+                        fadeOut.setFromValue(1.0);
+                        fadeOut.setToValue(0.0);
+                        fadeOut.setOnFinished(e -> instructionLabel.setText(""));
+                        fadeOut.play();
                     }
                     currentInput.append(c);
                     
@@ -281,6 +297,14 @@ public class TyperApp extends Application {
         button.setFont(Font.font("Consolas", 14));
         button.setPrefWidth(50);
         button.setPrefHeight(30);
+        
+        // Тень для кнопок
+        DropShadow buttonShadow = new DropShadow();
+        buttonShadow.setColor(Color.web("#000000", 0.2));
+        buttonShadow.setRadius(3);
+        buttonShadow.setOffsetY(2);
+        button.setEffect(buttonShadow);
+        
         if (selected) {
             button.setStyle(
                     "-fx-background-color: " + ACCENT_COLOR + ";" +
@@ -288,6 +312,14 @@ public class TyperApp extends Application {
                     "-fx-background-radius: 5;" +
                     "-fx-cursor: hand;"
             );
+            
+            // Пульсация выбранной кнопки
+            ScaleTransition pulse = new ScaleTransition(Duration.millis(200), button);
+            pulse.setToX(1.1);
+            pulse.setToY(1.1);
+            pulse.setAutoReverse(true);
+            pulse.setCycleCount(2);
+            pulse.play();
         } else {
             button.setStyle(
                     "-fx-background-color: #505050ff;" +
@@ -297,6 +329,12 @@ public class TyperApp extends Application {
                     "-fx-border-radius: 5;" +
                     "-fx-cursor: hand;"
             );
+            
+            // Возврат к нормальному размеру
+            ScaleTransition reset = new ScaleTransition(Duration.millis(150), button);
+            reset.setToX(1.0);
+            reset.setToY(1.0);
+            reset.play();
         }
     }
 
@@ -324,6 +362,7 @@ public class TyperApp extends Application {
                 if (!correct) {
                     wordText.setUnderline(true);
                 }
+                
                 wordsDisplay.getChildren().add(wordText);
             } else if (wordIdx == currentWordIndex) {
                 // андерлайн
@@ -336,6 +375,27 @@ public class TyperApp extends Application {
                             charText.setFill(Color.web(TEXT_CORRECT)); 
                         } else {
                             charText.setFill(Color.web(TEXT_ERROR)); 
+                        }
+                        
+                        // Плавное появление напечатанных символов
+                        if (charIdx == currentInput.length() - 1) {
+                            charText.setOpacity(0);
+                            charText.setScaleX(0.5);
+                            charText.setScaleY(0.5);
+                            
+                            FadeTransition fade = new FadeTransition(Duration.millis(100), charText);
+                            fade.setFromValue(0);
+                            fade.setToValue(1);
+                            
+                            ScaleTransition scale = new ScaleTransition(Duration.millis(100), charText);
+                            scale.setFromX(0.5);
+                            scale.setFromY(0.5);
+                            scale.setToX(1.0);
+                            scale.setToY(1.0);
+                            scale.setInterpolator(Interpolator.EASE_OUT);
+                            
+                            ParallelTransition parallel = new ParallelTransition(fade, scale);
+                            parallel.play();
                         }
                     } else if (charIdx == currentInput.length()) {
                         charText.setFill(Color.web(TEXT_PENDING));
@@ -381,7 +441,14 @@ public class TyperApp extends Application {
         if (currentWordIndex >= words.size()) {
             finishTest();
         } else {
-            updateWordsDisplay();
+            // Плавный переход к следующему слову
+            TranslateTransition slide = new TranslateTransition(Duration.millis(150), wordsDisplay);
+            slide.setByX(-5);
+            slide.setAutoReverse(true);
+            slide.setCycleCount(2);
+            slide.setInterpolator(Interpolator.EASE_BOTH);
+            slide.setOnFinished(e -> updateWordsDisplay());
+            slide.play();
         }
     }
 
@@ -454,7 +521,41 @@ public class TyperApp extends Application {
         statsRow.getChildren().addAll(wpmBox, accBox);
 
         resultBox.getChildren().addAll(statsRow, timeLabel, wordsCorrectLabel, restartLabel);
+        
+        // Плавное появление результатов
+        resultBox.setOpacity(0);
         resultBox.setVisible(true);
+        resultBox.setScaleX(0.8);
+        resultBox.setScaleY(0.8);
+        
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(400), resultBox);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+        
+        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(400), resultBox);
+        scaleIn.setFromX(0.8);
+        scaleIn.setFromY(0.8);
+        scaleIn.setToX(1.0);
+        scaleIn.setToY(1.0);
+        scaleIn.setInterpolator(Interpolator.EASE_OUT);
+        
+        ParallelTransition parallelTransition = new ParallelTransition(fadeIn, scaleIn);
+        parallelTransition.play();
+        
+        // Анимация цифры WPM
+        Timeline wpmAnimation = new Timeline();
+        final int finalWpm = wpm;
+        for (int i = 0; i <= 20; i++) {
+            final int step = i;
+            wpmAnimation.getKeyFrames().add(
+                new KeyFrame(Duration.millis(i * 25), e -> {
+                    int currentWpm = (int)(finalWpm * step / 20.0);
+                    wpmValue.setText(String.valueOf(currentWpm));
+                })
+            );
+        }
+        wpmAnimation.setDelay(Duration.millis(200));
+        wpmAnimation.play();
 
         instructionLabel.setText("");
     }
@@ -468,8 +569,21 @@ public class TyperApp extends Application {
         testFinished = false;
         startTime = 0;
 
-        resultBox.setVisible(false);
-        resultBox.getChildren().clear();
+        // Плавное исчезновение результатов
+        if (resultBox.isVisible()) {
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(200), resultBox);
+            fadeOut.setFromValue(1);
+            fadeOut.setToValue(0);
+            fadeOut.setOnFinished(e -> {
+                resultBox.setVisible(false);
+                resultBox.getChildren().clear();
+            });
+            fadeOut.play();
+        } else {
+            resultBox.setVisible(false);
+            resultBox.getChildren().clear();
+        }
+        
         instructionLabel.setText(isRussian ? "начните печатать... (F1 - заново)" : "start typing... (F1 - restart)");
         statsLabel.setText("");
 
@@ -520,6 +634,14 @@ public class TyperApp extends Application {
         label.setPrefHeight(40);
         label.setAlignment(Pos.CENTER);
         label.setStyle(getKeyStyle(false));
+        
+        // Тень для клавиш
+        DropShadow keyShadow = new DropShadow();
+        keyShadow.setColor(Color.web("#000000", 0.2));
+        keyShadow.setRadius(3);
+        keyShadow.setOffsetY(2);
+        label.setEffect(keyShadow);
+        
         return label;
     }
     
@@ -552,7 +674,34 @@ public class TyperApp extends Application {
         }
         
         if (keyToHighlight != null && keyLabels.containsKey(keyToHighlight)) {
-            keyLabels.get(keyToHighlight).setStyle(getKeyStyle(pressed));
+            Label key = keyLabels.get(keyToHighlight);
+            
+            // Плавная анимация подсветки клавиши
+            if (pressed) {
+                // Анимация нажатия
+                ScaleTransition scaleDown = new ScaleTransition(Duration.millis(50), key);
+                scaleDown.setToX(0.95);
+                scaleDown.setToY(0.95);
+                
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(50), key);
+                fadeIn.setFromValue(1.0);
+                fadeIn.setToValue(1.0);
+                
+                key.setStyle(getKeyStyle(true));
+                scaleDown.play();
+            } else {
+                // Анимация отпускания
+                ScaleTransition scaleUp = new ScaleTransition(Duration.millis(100), key);
+                scaleUp.setToX(1.0);
+                scaleUp.setToY(1.0);
+                
+                Timeline colorTransition = new Timeline(
+                    new KeyFrame(Duration.millis(150), e -> key.setStyle(getKeyStyle(false)))
+                );
+                
+                scaleUp.play();
+                colorTransition.play();
+            }
         }
     }
     
