@@ -20,13 +20,13 @@ import java.util.*;
 public class TyperApp extends Application {
 
     // цвета
-    private static final String BG_COLOR = "#0a0a0a";
-    private static final String ACCENT_COLOR = "#8B0000";
-    private static final String ACCENT_LIGHT = "#DC143C";
-    private static final String TEXT_CORRECT = "#e8e8e8";
-    private static final String TEXT_ERROR = "#ff4444";
-    private static final String TEXT_PENDING = "#4a4a4a";
-    private static final String CURSOR_COLOR = "#DC143C";
+    private static final String BG_COLOR = "#FDF0D5";
+    private static final String ACCENT_COLOR = "#075985ff";
+    private static final String ACCENT_LIGHT = "#669bbcff";
+    private static final String TEXT_CORRECT = "#1275aaff";
+    private static final String TEXT_ERROR = "#9c0000ff";
+    private static final String TEXT_PENDING = "#616161ff";
+    private static final String CURSOR_COLOR = "#154766";
 
     private static final String[] ENGLISH_WORDS = {
             "the", "be", "to", "of", "and", "a", "in", "that", "have", "I",
@@ -272,6 +272,7 @@ public class TyperApp extends Application {
         root.requestFocus();
     }
 
+    //цвета кнопок
     private void styleToggleButton(ToggleButton button, boolean selected) {
         button.setFont(Font.font("Consolas", 14));
         button.setPrefWidth(50);
@@ -285,8 +286,8 @@ public class TyperApp extends Application {
             );
         } else {
             button.setStyle(
-                    "-fx-background-color: #1a1a1a;" +
-                    "-fx-text-fill: #666666;" +
+                    "-fx-background-color: #505050ff;" +
+                    "-fx-text-fill: #ffffffff;" +
                     "-fx-background-radius: 5;" +
                     "-fx-border-color: #333333;" +
                     "-fx-border-radius: 5;" +
@@ -518,6 +519,7 @@ public class TyperApp extends Application {
         return label;
     }
     
+    //цвета клавы
     private String getKeyStyle(boolean pressed) {
         if (pressed) {
             return "-fx-background-color: " + ACCENT_COLOR + ";" +
@@ -527,8 +529,8 @@ public class TyperApp extends Application {
                    "-fx-border-radius: 5;" +
                    "-fx-border-width: 1;";
         } else {
-            return "-fx-background-color: #1a1a1a;" +
-                   "-fx-text-fill: #888888;" +
+            return "-fx-background-color: #505050ff;" +
+                   "-fx-text-fill: #ffffffff;" +
                    "-fx-background-radius: 5;" +
                    "-fx-border-color: #333333;" +
                    "-fx-border-radius: 5;" +
