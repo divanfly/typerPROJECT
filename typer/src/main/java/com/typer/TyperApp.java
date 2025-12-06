@@ -21,8 +21,8 @@ public class TyperApp extends Application {
 
     // цвета
     private static final String BG_COLOR = "#0a0a0a";
-    private static final String ACCENT_COLOR = "#8B0000"; // Dark red/burgundy
-    private static final String ACCENT_LIGHT = "#DC143C"; // Crimson
+    private static final String ACCENT_COLOR = "#8B0000";
+    private static final String ACCENT_LIGHT = "#DC143C";
     private static final String TEXT_CORRECT = "#e8e8e8";
     private static final String TEXT_ERROR = "#ff4444";
     private static final String TEXT_PENDING = "#4a4a4a";
@@ -328,16 +328,16 @@ public class TyperApp extends Application {
 
                     if (charIdx < currentInput.length()) {
                         if (currentInput.charAt(charIdx) == word.charAt(charIdx)) {
-                            charText.setFill(Color.web(TEXT_CORRECT)); // Correct
+                            charText.setFill(Color.web(TEXT_CORRECT)); 
                         } else {
-                            charText.setFill(Color.web(TEXT_ERROR)); // Wrong
+                            charText.setFill(Color.web(TEXT_ERROR)); 
                         }
                     } else if (charIdx == currentInput.length()) {
                         charText.setFill(Color.web(TEXT_PENDING));
                         charText.setStyle("-fx-underline: true; -fx-stroke: " + CURSOR_COLOR + "; -fx-stroke-width: 0.5;");
                         charText.setUnderline(true);
                     } else {
-                        charText.setFill(Color.web(TEXT_PENDING)); // Not typed yet
+                        charText.setFill(Color.web(TEXT_PENDING)); 
                     }
                     wordsDisplay.getChildren().add(charText);
                 }
@@ -479,7 +479,7 @@ public class TyperApp extends Application {
         keyboard.setPadding(new Insets(20, 0, 10, 0));
         
         String[][] layout = isRussian ? RU_LAYOUT : EN_LAYOUT;
-        double[] offsets = {0, 15, 35}; // Row offsets for staggered layout
+        double[] offsets = {0, 15, 35}; 
         
         for (int row = 0; row < layout.length; row++) {
             HBox rowBox = new HBox(5);
