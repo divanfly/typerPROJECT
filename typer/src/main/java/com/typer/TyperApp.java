@@ -103,6 +103,10 @@ public class TyperApp extends Application {
     private VBox keyboardBox;
     private Map<String, Label> keyLabels = new HashMap<>();
     
+
+    
+
+    
     // раскладки клавы
     private static final String[][] EN_LAYOUT = {
         {"Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"},
