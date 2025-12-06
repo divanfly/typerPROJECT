@@ -19,7 +19,7 @@ import java.util.*;
 
 public class TyperApp extends Application {
 
-    // Colors - Black & Burgundy theme
+    // цвета
     private static final String BG_COLOR = "#0a0a0a";
     private static final String ACCENT_COLOR = "#8B0000"; // Dark red/burgundy
     private static final String ACCENT_LIGHT = "#DC143C"; // Crimson
@@ -99,11 +99,11 @@ public class TyperApp extends Application {
     private ToggleButton ruButton;
     private VBox root;
     
-    // Keyboard
+    // клава
     private VBox keyboardBox;
     private Map<String, Label> keyLabels = new HashMap<>();
     
-    // Keyboard layouts
+    // раскладки клавы
     private static final String[][] EN_LAYOUT = {
         {"Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"},
         {"A", "S", "D", "F", "G", "H", "J", "K", "L"},
@@ -125,7 +125,7 @@ public class TyperApp extends Application {
         root.setPadding(new Insets(50));
         root.setStyle("-fx-background-color: " + BG_COLOR + ";");
 
-        // Language selector
+        // выбор языка
         HBox langSelector = new HBox(10);
         langSelector.setAlignment(Pos.CENTER);
 
@@ -168,47 +168,47 @@ public class TyperApp extends Application {
 
         langSelector.getChildren().addAll(enButton, ruButton);
 
-        // Title
+        // тайтл
         Label title = new Label("typer");
         title.setFont(Font.font("Consolas", 48));
         title.setTextFill(Color.web(ACCENT_COLOR));
 
-        // Words display
+        // отображ. слов
         wordsDisplay = new TextFlow();
         wordsDisplay.setMaxWidth(800);
         wordsDisplay.setLineSpacing(10);
         wordsDisplay.setStyle("-fx-padding: 20;");
         wordsDisplay.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
 
-        // Stats label
+        // стата
         statsLabel = new Label("");
         statsLabel.setFont(Font.font("Consolas", 18));
         statsLabel.setTextFill(Color.web(TEXT_PENDING));
 
-        // Instruction label
+        // инструкции
         instructionLabel = new Label(isRussian ? "начните печатать... (F1 - заново)" : "start typing... (F1 - restart)");
         instructionLabel.setFont(Font.font("Consolas", 16));
         instructionLabel.setTextFill(Color.web(TEXT_PENDING));
 
-        // Result box (hidden initially)
+        // резы
         resultBox = new VBox(15);
         resultBox.setAlignment(Pos.CENTER);
         resultBox.setVisible(false);
 
-        // Visual keyboard
+        // отображ. клавы
         keyboardBox = createKeyboard();
 
         root.getChildren().addAll(langSelector, title, wordsDisplay, instructionLabel, statsLabel, resultBox, keyboardBox);
 
         updateWordsDisplay();
 
-        Scene scene = new Scene(root, 900, 700);
+        Scene scene = new Scene(root, 1600, 900);
 
         scene.setOnKeyPressed(event -> {
-            // Highlight key
+            // подсветка клавы
             highlightKey(event.getCode(), event.getText(), true);
             
-            // F1 always restarts
+            // рестарт на ф1
             if (event.getCode() == KeyCode.F1) {
                 event.consume();
                 restartTest();
@@ -237,7 +237,7 @@ public class TyperApp extends Application {
             highlightKey(event.getCode(), event.getText(), false);
         });
 
-        // Keep focus on root
+        
         root.setFocusTraversable(true);
 
         scene.setOnKeyTyped(event -> {
@@ -254,7 +254,7 @@ public class TyperApp extends Application {
                     }
                     currentInput.append(c);
                     
-                    // Auto-complete only the LAST word when length matches
+                    // авто завершение последнего слова
                     String currentWord = words.get(currentWordIndex);
                     if (currentWordIndex == words.size() - 1 && currentInput.length() >= currentWord.length()) {
                         processWordComplete();
@@ -311,7 +311,7 @@ public class TyperApp extends Application {
             String word = words.get(wordIdx);
 
             if (wordIdx < currentWordIndex) {
-                // Completed words
+                // выполненные слова
                 boolean correct = wordResults.get(wordIdx);
                 Text wordText = new Text(word + " ");
                 wordText.setFont(Font.font("Consolas", 28));
@@ -321,7 +321,7 @@ public class TyperApp extends Application {
                 }
                 wordsDisplay.getChildren().add(wordText);
             } else if (wordIdx == currentWordIndex) {
-                // Current word - show character by character with cursor as underline
+                // андерлайн
                 for (int charIdx = 0; charIdx < word.length(); charIdx++) {
                     Text charText = new Text(String.valueOf(word.charAt(charIdx)));
                     charText.setFont(Font.font("Consolas", 28));
@@ -333,7 +333,6 @@ public class TyperApp extends Application {
                             charText.setFill(Color.web(TEXT_ERROR)); // Wrong
                         }
                     } else if (charIdx == currentInput.length()) {
-                        // Cursor position - underline the next character to type
                         charText.setFill(Color.web(TEXT_PENDING));
                         charText.setStyle("-fx-underline: true; -fx-stroke: " + CURSOR_COLOR + "; -fx-stroke-width: 0.5;");
                         charText.setUnderline(true);
@@ -343,7 +342,7 @@ public class TyperApp extends Application {
                     wordsDisplay.getChildren().add(charText);
                 }
 
-                // Extra characters typed (errors)
+                // ошибки
                 if (currentInput.length() > word.length()) {
                     String extra = currentInput.substring(word.length());
                     Text extraText = new Text(extra);
@@ -356,7 +355,7 @@ public class TyperApp extends Application {
                 space.setFont(Font.font("Consolas", 28));
                 wordsDisplay.getChildren().add(space);
             } else {
-                // Future words
+                // ожидаемые слова
                 Text wordText = new Text(word + " ");
                 wordText.setFont(Font.font("Consolas", 28));
                 wordText.setFill(Color.web(TEXT_PENDING));
@@ -398,14 +397,14 @@ public class TyperApp extends Application {
             }
         }
 
-        // WPM calculation: (correct characters / 5) / minutes
+        // калькуляция wpm и accuracy
         double minutes = timeSeconds / 60.0;
         int wpm = (int) (((correctChars / 5.0) / minutes)+20);
         int accuracy = (int) ((correctWords * 100.0) / words.size());
 
         updateWordsDisplay();
 
-        // Show results
+        // показ резов
         resultBox.getChildren().clear();
 
         Label wpmLabel = new Label("WPM");
@@ -495,7 +494,7 @@ public class TyperApp extends Application {
             keyboard.getChildren().add(rowBox);
         }
         
-        // Space bar
+        // пробел
         HBox spaceRow = new HBox();
         spaceRow.setAlignment(Pos.CENTER);
         Label spaceLabel = new Label("");
@@ -571,7 +570,7 @@ public class TyperApp extends Application {
             keyboardBox.getChildren().add(rowBox);
         }
         
-        // Space bar
+        // пробел
         HBox spaceRow = new HBox();
         spaceRow.setAlignment(Pos.CENTER);
         Label spaceLabel = new Label("");
