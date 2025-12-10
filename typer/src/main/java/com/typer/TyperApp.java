@@ -5,6 +5,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.KeyCode;
@@ -101,12 +102,19 @@ public class TyperApp extends Application {
     private VBox resultBox;
     private ToggleButton enButton;
     private ToggleButton ruButton;
-    private VBox root;
+    private BorderPane root;
+    private VBox centerContent;
     
     // клава
     private VBox keyboardBox;
     private Map<String, Label> keyLabels = new HashMap<>();
     
+    // профиль
+    private ProfileService profileService;
+    private VBox mainContent;
+    private VBox profileContent;
+    private boolean showingProfile = false;
+    private ToggleButton profileButton;
 
     
 
@@ -126,16 +134,20 @@ public class TyperApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        profileService = new ProfileService();
         words = generateWords();
 
-        root = new VBox(30);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(50));
+        root = new BorderPane();
         root.setStyle("-fx-background-color: " + BG_COLOR + ";");
 
-        // выбор языка
+        // верхняя панель
+        HBox topBar = new HBox();
+        topBar.setPadding(new Insets(20, 30, 10, 30));
+        topBar.setAlignment(Pos.CENTER_LEFT);
+
+        // выбор языка (слева)
         HBox langSelector = new HBox(10);
-        langSelector.setAlignment(Pos.CENTER);
+        langSelector.setAlignment(Pos.CENTER_LEFT);
 
         ToggleGroup langGroup = new ToggleGroup();
 
@@ -175,6 +187,27 @@ public class TyperApp extends Application {
         });
 
         langSelector.getChildren().addAll(enButton, ruButton);
+        
+        // кнопка профиля (справа)
+        HBox profileBox = new HBox();
+        profileBox.setAlignment(Pos.CENTER_RIGHT);
+        HBox.setHgrow(profileBox, Priority.ALWAYS);
+        
+        profileButton = new ToggleButton("👤 Профиль");
+        profileButton.setFont(Font.font("Consolas", 14));
+        profileButton.setPrefWidth(120);
+        profileButton.setPrefHeight(35);
+        profileButton.setStyle(
+                "-fx-background-color: " + ACCENT_COLOR + ";" +
+                "-fx-text-fill: white;" +
+                "-fx-background-radius: 5;" +
+                "-fx-cursor: hand;"
+        );
+        profileButton.setOnAction(e -> toggleProfile());
+        
+        profileBox.getChildren().add(profileButton);
+        topBar.getChildren().addAll(langSelector, profileBox);
+        root.setTop(topBar);
 
         // тайтл
         Label title = new Label("typer");
@@ -212,7 +245,22 @@ public class TyperApp extends Application {
         // отображ. клавы
         keyboardBox = createKeyboard();
 
-        root.getChildren().addAll(langSelector, title, wordsDisplay, instructionLabel, statsLabel, resultBox, keyboardBox);
+        // главный контент
+        mainContent = new VBox(30);
+        mainContent.setAlignment(Pos.CENTER);
+        mainContent.setPadding(new Insets(20));
+        mainContent.getChildren().addAll(title, wordsDisplay, instructionLabel, statsLabel, resultBox, keyboardBox);
+        
+        // контент профиля
+        profileContent = createProfileContent();
+        profileContent.setVisible(false);
+        
+        // центральный контейнер
+        centerContent = new VBox();
+        centerContent.setAlignment(Pos.CENTER);
+        centerContent.getChildren().add(mainContent);
+
+        root.setCenter(centerContent);
 
         updateWordsDisplay();
 
@@ -473,6 +521,10 @@ public class TyperApp extends Application {
         double minutes = timeSeconds / 60.0;
         int wpm = (int) ((correctChars / 5.0) / minutes);
         int accuracy = (int) ((correctWords * 100.0) / words.size());
+        
+        // сохранение результата
+        TestResult result = new TestResult(wpm, accuracy, timeSeconds, correctWords, words.size(), isRussian);
+        profileService.saveResult(result);
 
         updateWordsDisplay();
 
@@ -735,6 +787,320 @@ public class TyperApp extends Application {
         keyLabels.put("SPACE", spaceLabel);
         spaceRow.getChildren().add(spaceLabel);
         keyboardBox.getChildren().add(spaceRow);
+    }
+    
+    private VBox createProfileContent() {
+        VBox profile = new VBox(25);
+        profile.setAlignment(Pos.CENTER);
+        profile.setPadding(new Insets(20));
+        
+        Label profileTitle = new Label(isRussian ? "Профиль" : "Profile");
+        profileTitle.setFont(Font.font("Consolas", 42));
+        profileTitle.setTextFill(Color.web(ACCENT_COLOR));
+        
+        // Тень для заголовка
+        DropShadow titleShadow = new DropShadow();
+        titleShadow.setColor(Color.web(ACCENT_COLOR, 0.3));
+        titleShadow.setRadius(10);
+        profileTitle.setEffect(titleShadow);
+        
+        profile.getChildren().add(profileTitle);
+        
+        return profile;
+    }
+    
+    private void updateProfileContent() {
+        profileContent.getChildren().clear();
+        
+        Label profileTitle = new Label(isRussian ? "Профиль" : "Profile");
+        profileTitle.setFont(Font.font("Consolas", 42));
+        profileTitle.setTextFill(Color.web(ACCENT_COLOR));
+        
+        DropShadow titleShadow = new DropShadow();
+        titleShadow.setColor(Color.web(ACCENT_COLOR, 0.3));
+        titleShadow.setRadius(10);
+        profileTitle.setEffect(titleShadow);
+        
+        profileContent.getChildren().add(profileTitle);
+        
+        // === РЕКОРДЫ ===
+        Label recordsLabel = new Label(isRussian ? "🏆 Рекорды WPM" : "🏆 WPM Records");
+        recordsLabel.setFont(Font.font("Consolas", 28));
+        recordsLabel.setTextFill(Color.web(ACCENT_COLOR));
+        recordsLabel.setPadding(new Insets(30, 0, 20, 0));
+        profileContent.getChildren().add(recordsLabel);
+        
+        // Рекорды WPM по языкам
+        HBox languageRecords = new HBox(50);
+        languageRecords.setAlignment(Pos.CENTER);
+        languageRecords.setPadding(new Insets(10, 0, 20, 0));
+        
+        VBox enRecords = createBestWpmCard(false);
+        VBox ruRecords = createBestWpmCard(true);
+        
+        languageRecords.getChildren().addAll(enRecords, ruRecords);
+        profileContent.getChildren().add(languageRecords);
+        
+        // Разделитель
+        javafx.scene.shape.Line separator = new javafx.scene.shape.Line();
+        separator.setStartX(0);
+        separator.setEndX(600);
+        separator.setStroke(Color.web(ACCENT_LIGHT));
+        separator.setStrokeWidth(2);
+        HBox separatorBox = new HBox(separator);
+        separatorBox.setAlignment(Pos.CENTER);
+        separatorBox.setPadding(new Insets(10, 0, 10, 0));
+        profileContent.getChildren().add(separatorBox);
+        
+        // === ИСТОРИЯ ===
+        Label historyLabel = new Label(isRussian ? "📜 История тестов" : "📜 Test History");
+        historyLabel.setFont(Font.font("Consolas", 28));
+        historyLabel.setTextFill(Color.web(ACCENT_COLOR));
+        historyLabel.setPadding(new Insets(20, 0, 15, 0));
+        profileContent.getChildren().add(historyLabel);
+        
+        List<TestResult> recentResults = profileService.getRecentResults(15);
+        
+        if (recentResults.isEmpty()) {
+            Label noResults = new Label(isRussian ? "Результатов пока нет" : "No results yet");
+            noResults.setFont(Font.font("Consolas", 16));
+            noResults.setTextFill(Color.web(TEXT_PENDING));
+            noResults.setPadding(new Insets(20));
+            profileContent.getChildren().add(noResults);
+        } else {
+            VBox historyList = new VBox(6);
+            historyList.setAlignment(Pos.CENTER);
+            historyList.setMaxWidth(1100);
+            historyList.setPadding(new Insets(5, 10, 10, 10));
+            
+            // История построчно
+            for (int i = 0; i < recentResults.size(); i++) {
+                TestResult result = recentResults.get(i);
+                HBox historyItem = createHistoryItem(result, i + 1);
+                historyList.getChildren().add(historyItem);
+            }
+            
+            // ScrollPane для истории
+            javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(historyList);
+            scrollPane.setFitToWidth(true);
+            scrollPane.setMaxHeight(450);
+            scrollPane.setPrefHeight(450);
+            scrollPane.setMaxWidth(1120);
+            scrollPane.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-background: " + BG_COLOR + ";" +
+                "-fx-border-color: transparent;"
+            );
+            scrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+            scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            
+            // Центрирование ScrollPane
+            HBox scrollContainer = new HBox(scrollPane);
+            scrollContainer.setAlignment(Pos.CENTER);
+            
+            profileContent.getChildren().add(scrollContainer);
+        }
+    }
+    
+    private HBox createHistoryItem(TestResult result, int index) {
+        HBox item = new HBox(10);
+        item.setAlignment(Pos.CENTER_LEFT);
+        item.setPadding(new Insets(10, 15, 10, 15));
+        item.setMaxWidth(1080);
+        item.setPrefHeight(50);
+        item.setStyle(
+            "-fx-background-color: rgba(80, 80, 80, 0.2);" +
+            "-fx-background-radius: 8;" +
+            "-fx-border-color: rgba(102, 155, 188, 0.25);" +
+            "-fx-border-radius: 8;" +
+            "-fx-border-width: 1;"
+        );
+        
+        // Номер
+        Label numLabel = new Label(String.format("%d.", index));
+        numLabel.setFont(Font.font("Consolas", 13));
+        numLabel.setTextFill(Color.web(TEXT_PENDING));
+        numLabel.setPrefWidth(30);
+        numLabel.setAlignment(Pos.CENTER_RIGHT);
+        
+        // Дата и время
+        Label dateLabel = new Label(result.getFormattedDate());
+        dateLabel.setFont(Font.font("Consolas", 13));
+        dateLabel.setTextFill(Color.web(TEXT_PENDING));
+        dateLabel.setPrefWidth(120);
+        dateLabel.setAlignment(Pos.CENTER_LEFT);
+        
+        // Язык
+        Label langLabel = new Label(result.getLanguage());
+        langLabel.setFont(Font.font("Consolas", 12));
+        langLabel.setTextFill(Color.web(ACCENT_LIGHT));
+        langLabel.setPrefWidth(35);
+        langLabel.setAlignment(Pos.CENTER);
+        langLabel.setStyle(
+            "-fx-background-color: rgba(7, 89, 133, 0.2);" +
+            "-fx-background-radius: 4;" +
+            "-fx-padding: 3 6 3 6;"
+        );
+        
+        // WPM
+        Label wpmTitleLabel = new Label("WPM:");
+        wpmTitleLabel.setFont(Font.font("Consolas", 11));
+        wpmTitleLabel.setTextFill(Color.web(TEXT_PENDING));
+        
+        Label wpmValue = new Label(String.valueOf(result.getWpm()));
+        wpmValue.setFont(Font.font("Consolas", 15));
+        wpmValue.setTextFill(Color.web(TEXT_CORRECT));
+        wpmValue.setPrefWidth(40);
+        wpmValue.setAlignment(Pos.CENTER_RIGHT);
+        
+        // Точность
+        Label accTitleLabel = new Label(isRussian ? "Точн.:" : "Acc:");
+        accTitleLabel.setFont(Font.font("Consolas", 11));
+        accTitleLabel.setTextFill(Color.web(TEXT_PENDING));
+        
+        Label accValue = new Label(result.getAccuracy() + "%");
+        accValue.setFont(Font.font("Consolas", 15));
+        accValue.setTextFill(Color.web(TEXT_CORRECT));
+        accValue.setPrefWidth(45);
+        accValue.setAlignment(Pos.CENTER_RIGHT);
+        
+        // Spacer
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        // Время
+        Label timeLabel = new Label(String.format("%.1fs", result.getTimeSeconds()));
+        timeLabel.setFont(Font.font("Consolas", 11));
+        timeLabel.setTextFill(Color.web(TEXT_PENDING));
+        timeLabel.setPrefWidth(50);
+        timeLabel.setAlignment(Pos.CENTER_RIGHT);
+        
+        // Слова
+        Label wordsLabel = new Label(String.format("%d/%d", result.getCorrectWords(), result.getTotalWords()));
+        wordsLabel.setFont(Font.font("Consolas", 11));
+        wordsLabel.setTextFill(Color.web(TEXT_PENDING));
+        wordsLabel.setPrefWidth(50);
+        wordsLabel.setAlignment(Pos.CENTER_RIGHT);
+        
+        item.getChildren().addAll(
+            numLabel, dateLabel, langLabel, 
+            wpmTitleLabel, wpmValue, 
+            accTitleLabel, accValue, 
+            spacer, timeLabel, wordsLabel
+        );
+        
+        return item;
+    }
+    
+    private VBox createBestWpmCard(boolean russian) {
+        VBox card = new VBox(10);
+        card.setAlignment(Pos.CENTER);
+        card.setPadding(new Insets(20, 25, 20, 25));
+        card.setStyle(
+            "-fx-background-color: rgba(80, 80, 80, 0.25);" +
+            "-fx-background-radius: 12;" +
+            "-fx-border-color: " + ACCENT_COLOR + ";" +
+            "-fx-border-radius: 12;" +
+            "-fx-border-width: 2;"
+        );
+        card.setPrefWidth(280);
+        card.setPrefHeight(200);
+        
+        // Язык
+        Label langLabel = new Label(russian ? "RU" : "EN");
+        langLabel.setFont(Font.font("Consolas", 22));
+        langLabel.setTextFill(Color.web(ACCENT_LIGHT));
+        
+        TestResult bestWpm = profileService.getBestWpm(russian);
+        int totalTests = profileService.getTotalTests(russian);
+        
+        // Spacer
+        Region spacer1 = new Region();
+        VBox.setVgrow(spacer1, Priority.ALWAYS);
+        spacer1.setMinHeight(3);
+        
+        // WPM значение
+        Label wpmValue = new Label(bestWpm != null ? String.valueOf(bestWpm.getWpm()) : "-");
+        wpmValue.setFont(Font.font("Consolas", 52));
+        wpmValue.setTextFill(Color.web(ACCENT_COLOR));
+        
+        // WPM лейбл
+        Label wpmLabel = new Label("WPM");
+        wpmLabel.setFont(Font.font("Consolas", 14));
+        wpmLabel.setTextFill(Color.web(TEXT_PENDING));
+        
+        // Spacer
+        Region spacer2 = new Region();
+        VBox.setVgrow(spacer2, Priority.ALWAYS);
+        spacer2.setMinHeight(3);
+        
+        // Точность
+        Label accuracyLabel = new Label(bestWpm != null ? 
+            (isRussian ? "Точность: " : "Accuracy: ") + bestWpm.getAccuracy() + "%" : "-");
+        accuracyLabel.setFont(Font.font("Consolas", 12));
+        accuracyLabel.setTextFill(Color.web(TEXT_PENDING));
+        
+        // Дата
+        Label dateLabel = new Label(bestWpm != null ? bestWpm.getFormattedDate() : "");
+        dateLabel.setFont(Font.font("Consolas", 10));
+        dateLabel.setTextFill(Color.web(TEXT_PENDING));
+        dateLabel.setOpacity(0.6);
+        
+        // Всего тестов
+        Label testsLabel = new Label((isRussian ? "Тестов: " : "Tests: ") + totalTests);
+        testsLabel.setFont(Font.font("Consolas", 10));
+        testsLabel.setTextFill(Color.web(TEXT_PENDING));
+        testsLabel.setOpacity(0.6);
+        
+        card.getChildren().addAll(langLabel, spacer1, wpmValue, wpmLabel, spacer2, accuracyLabel, dateLabel, testsLabel);
+        
+        return card;
+    }
+    
+    private void toggleProfile() {
+        showingProfile = !showingProfile;
+        
+        if (showingProfile) {
+            // Переход к профилю
+            updateProfileContent();
+            
+            FadeTransition fadeOutMain = new FadeTransition(Duration.millis(200), mainContent);
+            fadeOutMain.setFromValue(1.0);
+            fadeOutMain.setToValue(0.0);
+            fadeOutMain.setOnFinished(e -> {
+                centerContent.getChildren().clear();
+                centerContent.getChildren().add(profileContent);
+                profileContent.setVisible(true);
+                
+                FadeTransition fadeInProfile = new FadeTransition(Duration.millis(300), profileContent);
+                fadeInProfile.setFromValue(0.0);
+                fadeInProfile.setToValue(1.0);
+                fadeInProfile.play();
+            });
+            fadeOutMain.play();
+            
+            profileButton.setSelected(true);
+            profileButton.setText(isRussian ? "← Назад" : "← Back");
+        } else {
+            // Возврат к тесту
+            FadeTransition fadeOutProfile = new FadeTransition(Duration.millis(200), profileContent);
+            fadeOutProfile.setFromValue(1.0);
+            fadeOutProfile.setToValue(0.0);
+            fadeOutProfile.setOnFinished(e -> {
+                centerContent.getChildren().clear();
+                centerContent.getChildren().add(mainContent);
+                mainContent.setVisible(true);
+                
+                FadeTransition fadeInMain = new FadeTransition(Duration.millis(300), mainContent);
+                fadeInMain.setFromValue(0.0);
+                fadeInMain.setToValue(1.0);
+                fadeInMain.play();
+            });
+            fadeOutProfile.play();
+            
+            profileButton.setSelected(false);
+            profileButton.setText(isRussian ? "👤 Профиль" : "👤 Profile");
+        }
     }
 
     public static void main(String[] args) {
