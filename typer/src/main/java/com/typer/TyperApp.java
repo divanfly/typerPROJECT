@@ -5,7 +5,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.KeyCode;
@@ -18,7 +17,6 @@ import javafx.stage.Stage;
 import javafx.animation.*;
 import javafx.util.Duration;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.GaussianBlur;
 
 import java.util.*;
 
@@ -489,14 +487,7 @@ public class TyperApp extends Application {
         if (currentWordIndex >= words.size()) {
             finishTest();
         } else {
-            // Плавный переход к следующему слову
-            TranslateTransition slide = new TranslateTransition(Duration.millis(150), wordsDisplay);
-            slide.setByX(-5);
-            slide.setAutoReverse(true);
-            slide.setCycleCount(2);
-            slide.setInterpolator(Interpolator.EASE_BOTH);
-            slide.setOnFinished(e -> updateWordsDisplay());
-            slide.play();
+            updateWordsDisplay();
         }
     }
 
@@ -507,10 +498,8 @@ public class TyperApp extends Application {
 
         int correctWords = 0;
         int correctChars = 0;
-        int totalChars = 0;
 
         for (int i = 0; i < words.size(); i++) {
-            totalChars += words.get(i).length();
             if (wordResults.get(i)) {
                 correctWords++;
                 correctChars += words.get(i).length();
