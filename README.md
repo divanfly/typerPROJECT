@@ -39,6 +39,7 @@ The application enables users to:
 5. **Access personal records** with separate tracking for each supported language
 6. **Utilize visual keyboard display** with real-time key highlighting to support touch-typing skill development
 7. **Experience smooth, animated interface** with professional transitions and modern design elements
+8. **Access interactive learning mode** with color-coded keyboard visualization showing proper finger placement for each key
 
 ---
 
@@ -100,6 +101,29 @@ The profile interface provides comprehensive access to historical performance da
   - Correct word ratio
 - **Smooth Transitions:** Animated navigation between main screen and profile view
 
+### Learning Screen
+
+![Learning Screen](screenshots/learning_screen.png)
+
+**Learning Screen Description:**
+
+The learning interface provides an interactive keyboard visualization to help users develop proper typing technique:
+
+- **Interactive Keyboard Display:** Full keyboard layout with color-coded keys indicating which finger should be used:
+  - Red keys: Left pinky finger
+  - Orange keys: Left ring finger
+  - Yellow keys: Left middle finger
+  - Green keys: Left index finger
+  - Purple keys: Right index finger
+  - Light blue keys: Right middle finger
+  - Sky blue keys: Right ring finger
+  - Yellow-green keys: Right pinky finger
+- **Hand Visualization:** Visual representation of both hands below the keyboard with matching color coding for each finger
+- **Real-Time Key Animation:** When keys are pressed, they animate with scaling and brightening effects
+- **Bilingual Support:** Keyboard automatically switches between QWERTY and ЙЦУКЕН layouts based on selected language
+- **Complete Key Coverage:** Includes all alphanumeric keys, symbols, and spacebar with proper finger assignments
+- **Finger Labels:** Each finger is labeled (Pinky, Ring, Middle, Index) for clarity
+
 ---
 
 ## Project Features
@@ -146,7 +170,30 @@ Interactive keyboard visualization enhances learning:
 - **Visual Depth:** Shadow effects applied to each key for three-dimensional appearance
 - **Touch-Typing Support:** Aids in developing muscle memory for blind typing
 
-### 4. Data Persistence
+### 4. Interactive Learning Mode
+
+Dedicated learning interface to master proper typing technique:
+
+- **Color-Coded Keyboard Visualization:** Complete keyboard display with finger-specific color coding:
+  - 🔴 **Red** — Left pinky (Q, A, Z, 1, `, !)
+  - 🟠 **Orange** — Left ring finger (W, S, 2, @)
+  - 🟡 **Yellow** — Left middle finger (E, D, X, 3, #)
+  - 🟢 **Green** — Left index finger (R, T, F, G, V, B, 4, 5, $, %)
+  - 🟣 **Purple** — Right index finger (Y, H, N, 6, 7, ^, &)
+  - 🔵 **Light Blue** — Right middle finger (U, J, M)
+  - 🟦 **Sky Blue** — Right ring finger (I, K, 8, *, ,, <)
+  - 🟨 **Yellow-Green** — Right pinky (O, L, P, 9, 0, -, =, [, ], ;, ', /, ?, .)
+- **Animated Key Presses:** Real-time visual feedback when keys are pressed:
+  - Scale animation (key visually presses down)
+  - Color brightening effect
+  - Smooth transition animations
+- **Hand Visualization:** Graphical representation of both hands with color-coded fingers matching the keyboard
+- **Finger Labels:** Clear labeling (Pinky, Ring, Middle, Index) for each finger
+- **Dual Language Support:** Automatic keyboard layout switching between English (QWERTY) and Russian (ЙЦУКЕН)
+- **Complete Symbol Coverage:** All letters, numbers, and common symbols included with proper finger assignments
+- **Professional Component Design:** Implemented as separate `KeyboardGuide` class for modularity and reusability
+
+### 5. Data Persistence
 
 Robust data management ensures reliable storage and retrieval:
 
@@ -163,7 +210,7 @@ Robust data management ensures reliable storage and retrieval:
   - Language identifier
   - Timestamp (LocalDateTime)
 
-### 5. Profile Management System
+### 6. Profile Management System
 
 Advanced user profile functionality:
 
@@ -269,6 +316,7 @@ Professional-grade performance measurement:
 com.typer/
 ├── Main.java (alternative entry point)
 ├── TyperApp.java (main application class)
+├── KeyboardGuide.java (learning mode keyboard component)
 ├── ProfileService.java (data management service)
 └── TestResult.java (data model)
 ```
@@ -305,6 +353,14 @@ com.typer/
 - Profile header
 - Record cards for English and Russian
 - ScrollPane containing test history list
+
+**Learning Screen:**
+- Separate VBox component utilizing KeyboardGuide class
+- Title label with shadow effects
+- ScrollPane for keyboard visualization
+- Interactive keyboard with color-coded keys (55×55px each)
+- Hand visualization with finger color mapping
+- Real-time key press animations
 
 **Visual Keyboard:**
 - VBox with 4 rows (3 letter rows + spacebar)
@@ -648,8 +704,66 @@ public class TestResult implements Serializable {
 }
 ```
 
+### KeyboardGuide.java (Learning Mode Component - Excerpt)
+```java
+public class KeyboardGuide extends VBox {
+    private Map<String, StackPane> keyButtons = new HashMap<>();
+    private Map<String, String> fingerColors = new HashMap<>();
+    private boolean isRussian;
+    
+    public KeyboardGuide(boolean isRussian) {
+        this.isRussian = isRussian;
+        setupColors();
+        createKeyboardVisualization();
+    }
+    
+    private void setupColors() {
+        // Left hand color mapping
+        fingerColors.put("Q", "#FF6B6B"); // Red - left pinky
+        fingerColors.put("W", "#FFA500"); // Orange - left ring
+        fingerColors.put("E", "#FFD700"); // Yellow - left middle
+        fingerColors.put("R", "#90EE90"); // Green - left index
+        // ... 100+ key mappings ...
+    }
+    
+    private VBox createKeyboard() {
+        // Creates full keyboard layout with color-coded keys
+        // Each key is a StackPane with Rectangle background and Label text
+        // Returns VBox containing 4 rows (3 letter rows + spacebar)
+    }
+    
+    private HBox createHands() {
+        // Creates visual representation of hands
+        // Shows 4 fingers per hand with matching colors
+        // Includes finger labels (Pinky, Ring, Middle, Index)
+    }
+    
+    public void highlightKey(String key) {
+        StackPane keyPane = keyButtons.get(key.toUpperCase());
+        if (keyPane != null) {
+            // Scale animation - press effect
+            ScaleTransition scale = new ScaleTransition(Duration.millis(100), keyPane);
+            scale.setToX(0.95);
+            scale.setToY(0.95);
+            scale.setAutoReverse(true);
+            scale.setCycleCount(2);
+            
+            // Color brightening - highlight effect
+            Rectangle bg = (Rectangle) keyPane.getChildren().get(0);
+            FillTransition fill = new FillTransition(Duration.millis(100), bg);
+            fill.setToValue(((Color) bg.getFill()).brighter());
+            fill.setAutoReverse(true);
+            fill.setCycleCount(2);
+            
+            new ParallelTransition(scale, fill).play();
+        }
+    }
+}
+```
+
 **Complete project source code is available in the repository:**
-- [TyperApp.java](typer/src/main/java/com/typer/TyperApp.java) — 1,081 lines
+- [TyperApp.java](typer/src/main/java/com/typer/TyperApp.java) — 1,100+ lines
+- [KeyboardGuide.java](typer/src/main/java/com/typer/KeyboardGuide.java) — 350+ lines
 - [ProfileService.java](typer/src/main/java/com/typer/ProfileService.java) — 114 lines
 - [TestResult.java](typer/src/main/java/com/typer/TestResult.java) — 65 lines
 - [pom.xml](typer/pom.xml) — Maven configuration
@@ -706,6 +820,7 @@ This project successfully developed a comprehensive desktop application for typi
 4. Designed a modern, animated interface with smooth transitions
 5. Implemented accurate performance metrics (WPM, Accuracy)
 6. Ensured cross-platform compatibility and data persistence
+7. Developed an interactive learning mode with color-coded finger placement visualization
 
 **Skills Acquired:**
 - Advanced JavaFX UI development and component composition
@@ -750,6 +865,7 @@ The successful completion of this project has provided hands-on experience with 
 - `typing_process.png` — Active typing session
 - `results_screen.png` — Results display screen
 - `profile_screen.png` — Profile screen with history
+- `learning_screen.png` — Learning screen with interactive keyboard
 - `keyboard_highlight.png` — Keyboard highlighting demonstration
 
 ### Execution Instructions
@@ -779,6 +895,7 @@ run.bat
 - `Backspace` — Delete last character
 - `F1` — Restart test
 - `EN/RU` — Language selection (available before test start)
+- `Learning Button` — Navigate to interactive learning screen
 - `Profile Button` — Navigate to profile screen
 
 ---

@@ -17,6 +17,8 @@ import javafx.stage.Stage;
 import javafx.animation.*;
 import javafx.util.Duration;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import java.util.*;
 
@@ -111,8 +113,12 @@ public class TyperApp extends Application {
     private ProfileService profileService;
     private VBox mainContent;
     private VBox profileContent;
+    private VBox learningContent;
     private boolean showingProfile = false;
+    private boolean showingLearning = false;
     private javafx.scene.control.Button profileButton;
+    private javafx.scene.control.Button learningButton;
+    private KeyboardGuide keyboardGuide;
 
     
 
@@ -186,10 +192,25 @@ public class TyperApp extends Application {
 
         langSelector.getChildren().addAll(enButton, ruButton);
         
-        // кнопка профиля (справа)
-        HBox profileBox = new HBox();
+        // кнопки справа (Learning и Profile)
+        HBox profileBox = new HBox(10);
         profileBox.setAlignment(Pos.CENTER_RIGHT);
         HBox.setHgrow(profileBox, Priority.ALWAYS);
+        
+        learningButton = new javafx.scene.control.Button("📚 Learning");
+        learningButton.setFont(Font.font("Consolas", 14));
+        learningButton.setPrefWidth(120);
+        learningButton.setPrefHeight(35);
+        learningButton.setStyle(
+                "-fx-background-color: " + ACCENT_COLOR + ";" +
+                "-fx-text-fill: white;" +
+                "-fx-background-radius: 5;" +
+                "-fx-cursor: hand;"
+        );
+        learningButton.setOnAction(e -> {
+            System.out.println("Learning button clicked!");
+            toggleLearning();
+        });
         
         profileButton = new javafx.scene.control.Button("👤 Profile");
         profileButton.setFont(Font.font("Consolas", 14));
@@ -206,7 +227,7 @@ public class TyperApp extends Application {
             toggleProfile();
         });
         
-        profileBox.getChildren().add(profileButton);
+        profileBox.getChildren().addAll(learningButton, profileButton);
         topBar.getChildren().addAll(langSelector, profileBox);
         root.setTop(topBar);
 
@@ -256,6 +277,10 @@ public class TyperApp extends Application {
         profileContent = createProfileContent();
         profileContent.setVisible(false);
         
+        // контент обучения
+        learningContent = createLearningContent();
+        learningContent.setVisible(false);
+        
         // центральный контейнер
         centerContent = new VBox();
         centerContent.setAlignment(Pos.CENTER);
@@ -268,6 +293,18 @@ public class TyperApp extends Application {
         Scene scene = new Scene(root, 1600, 900);
 
         scene.setOnKeyPressed(event -> {
+            // подсветка клавы на странице обучения
+            if (showingLearning && keyboardGuide != null) {
+                String key = event.getText();
+                if (key.isEmpty() && event.getCode() == KeyCode.SPACE) {
+                    key = " ";
+                }
+                if (!key.isEmpty()) {
+                    keyboardGuide.highlightKey(key);
+                }
+                return;
+            }
+            
             // подсветка клавы
             highlightKey(event.getCode(), event.getText(), true);
             
@@ -1031,7 +1068,109 @@ public class TyperApp extends Application {
         return card;
     }
     
+    private VBox createLearningContent() {
+        VBox learning = new VBox(30);
+        learning.setAlignment(Pos.CENTER);
+        learning.setPadding(new Insets(20));
+        
+        Label learningTitle = new Label("Learning");
+        learningTitle.setFont(Font.font("Consolas", 42));
+        learningTitle.setTextFill(Color.web(ACCENT_COLOR));
+        
+        DropShadow titleShadow = new DropShadow();
+        titleShadow.setColor(Color.web(ACCENT_COLOR, 0.3));
+        titleShadow.setRadius(10);
+        learningTitle.setEffect(titleShadow);
+        
+        learning.getChildren().add(learningTitle);
+        
+        // Визуализация клавиатуры с руками
+        keyboardGuide = new KeyboardGuide(isRussian);
+        
+        javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(keyboardGuide);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: " + BG_COLOR + ";");
+        scrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        
+        learning.getChildren().add(scrollPane);
+        
+        return learning;
+    }
+    
+    private void toggleLearning() {
+        if (showingProfile) {
+            toggleProfile();
+        }
+        
+        showingLearning = !showingLearning;
+        
+        if (showingLearning) {
+            // обучение
+            FadeTransition fadeOutMain = new FadeTransition(Duration.millis(200), mainContent);
+            fadeOutMain.setFromValue(1.0);
+            fadeOutMain.setToValue(0.0);
+            fadeOutMain.setOnFinished(e -> {
+                centerContent.getChildren().clear();
+                centerContent.getChildren().add(learningContent);
+                learningContent.setVisible(true);
+                
+                // Пересоздать KeyboardGuide для текущего языка
+                learningContent.getChildren().remove(1);
+                keyboardGuide = new KeyboardGuide(isRussian);
+                javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(keyboardGuide);
+                scrollPane.setFitToWidth(true);
+                scrollPane.setStyle("-fx-background-color: transparent; -fx-background: " + BG_COLOR + ";");
+                scrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+                scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                learningContent.getChildren().add(scrollPane);
+                
+                FadeTransition fadeInLearning = new FadeTransition(Duration.millis(300), learningContent);
+                fadeInLearning.setFromValue(0.0);
+                fadeInLearning.setToValue(1.0);
+                fadeInLearning.play();
+            });
+            fadeOutMain.play();
+            
+            learningButton.setText("← Back");
+            learningButton.setStyle(
+                    "-fx-background-color: " + ACCENT_LIGHT + ";" +
+                    "-fx-text-fill: white;" +
+                    "-fx-background-radius: 5;" +
+                    "-fx-cursor: hand;"
+            );
+        } else {
+            // возврат к тесту
+            FadeTransition fadeOutLearning = new FadeTransition(Duration.millis(200), learningContent);
+            fadeOutLearning.setFromValue(1.0);
+            fadeOutLearning.setToValue(0.0);
+            fadeOutLearning.setOnFinished(e -> {
+                centerContent.getChildren().clear();
+                centerContent.getChildren().add(mainContent);
+                mainContent.setVisible(true);
+                
+                FadeTransition fadeInMain = new FadeTransition(Duration.millis(300), mainContent);
+                fadeInMain.setFromValue(0.0);
+                fadeInMain.setToValue(1.0);
+                fadeInMain.play();
+            });
+            fadeOutLearning.play();
+            
+            learningButton.setText("📚 Learning");
+            learningButton.setStyle(
+                    "-fx-background-color: " + ACCENT_COLOR + ";" +
+                    "-fx-text-fill: white;" +
+                    "-fx-background-radius: 5;" +
+                    "-fx-cursor: hand;"
+            );
+        }
+    }
+    
     private void toggleProfile() {
+        if (showingLearning) {
+            toggleLearning();
+        }
+        
         showingProfile = !showingProfile;
         
         if (showingProfile) {
