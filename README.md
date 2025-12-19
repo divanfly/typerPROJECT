@@ -191,7 +191,7 @@ Dedicated learning interface to master proper typing technique:
 - **Finger Labels:** Clear labeling (Pinky, Ring, Middle, Index) for each finger
 - **Dual Language Support:** Automatic keyboard layout switching between English (QWERTY) and Russian (ЙЦУКЕН)
 - **Complete Symbol Coverage:** All letters, numbers, and common symbols included with proper finger assignments
-- **Professional Component Design:** Implemented as separate `KeyboardGuide` class for modularity and reusability
+- **Professional Component Design:** Implemented as separate `Keyboard` class for modularity and reusability
 
 ### 5. Data Persistence
 
@@ -275,8 +275,8 @@ Professional-grade performance measurement:
 
 **Architectural Patterns:**
 - **MVC-Like Structure** — Separation of logic and presentation layers
-- **Service Layer Pattern** — ProfileService for data access abstraction
-- **Data Transfer Object** — TestResult for encapsulating test data
+- **Service Layer Pattern** — Profile for data access abstraction
+- **Data Transfer Object** — Result for encapsulating test data
 
 ---
 
@@ -306,7 +306,7 @@ Professional-grade performance measurement:
     <groupId>org.openjfx</groupId>
     <artifactId>javafx-maven-plugin</artifactId>
     <configuration>
-        <mainClass>com.typer.TyperApp</mainClass>
+        <mainClass>com.typer.App</mainClass>
     </configuration>
 </plugin>
 ```
@@ -315,10 +315,10 @@ Professional-grade performance measurement:
 ```
 com.typer/
 ├── Main.java (alternative entry point)
-├── TyperApp.java (main application class)
-├── KeyboardGuide.java (learning mode keyboard component)
-├── ProfileService.java (data management service)
-└── TestResult.java (data model)
+├── App.java (main application class)
+├── Keyboard.java (learning mode keyboard component)
+├── Profile.java (data management service)
+└── Result.java (data model)
 ```
 
 ### 2. GUI Design
@@ -355,7 +355,7 @@ com.typer/
 - ScrollPane containing test history list
 
 **Learning Screen:**
-- Separate VBox component utilizing KeyboardGuide class
+- Separate VBox component utilizing Keyboard class
 - Title label with shadow effects
 - ScrollPane for keyboard visualization
 - Interactive keyboard with color-coded keys (55×55px each)
@@ -371,13 +371,13 @@ com.typer/
 
 **Word Generation:**
 ```java
-private List<String> generateWords() {
-    List<String> result = new ArrayList<>();
-    Random random = new Random();
-    for (int i = 0; i < WORD_COUNT; i++) {
-        result.add(currentWordPool[random.nextInt(currentWordPool.length)]);
+List<String> gen() {
+    List<String> res = new ArrayList<>();
+    Random rand = new Random();
+    for (int i = 0; i < cnt; i++) {
+        res.add(pool[rand.nextInt(pool.length)]);
     }
-    return result;
+    return res;
 }
 ```
 - Random selection of 10 words from pool (240 English or 200 Russian)
@@ -390,9 +390,9 @@ private List<String> generateWords() {
 
 **Progress Tracking:**
 ```java
-private int currentWordIndex = 0;
-private StringBuilder currentInput = new StringBuilder();
-private List<Boolean> wordResults = new ArrayList<>();
+int idx = 0;
+StringBuilder inp = new StringBuilder();
+List<Boolean> results = new ArrayList<>();
 ```
 
 **Display Updates:**
@@ -402,50 +402,50 @@ private List<Boolean> wordResults = new ArrayList<>();
 
 **Word Completion Processing:**
 ```java
-private void processWordComplete() {
-    String typed = currentInput.toString();
-    String expected = words.get(currentWordIndex);
-    boolean correct = typed.equals(expected);
-    wordResults.add(correct);
+void next() {
+    String typed = inp.toString();
+    String expected = words.get(idx);
+    boolean ok = typed.equals(expected);
+    results.add(ok);
     
-    currentWordIndex++;
-    currentInput.setLength(0);
+    idx++;
+    inp.setLength(0);
     
-    if (currentWordIndex >= words.size()) {
-        finishTest();
+    if (idx >= words.size()) {
+        finish();
     }
 }
 ```
 
 **Results Calculation:**
 ```java
-int correctWords = 0;
-int correctChars = 0;
+int correct = 0;
+int chars = 0;
 for (int i = 0; i < words.size(); i++) {
-    if (wordResults.get(i)) {
-        correctWords++;
-        correctChars += words.get(i).length();
+    if (results.get(i)) {
+        correct++;
+        chars += words.get(i).length();
     }
 }
 
-double minutes = timeSeconds / 60.0;
-int wpm = (int) ((correctChars / 5.0) / minutes);
-int accuracy = (int) ((correctWords * 100.0) / words.size());
+double mins = time / 60.0;
+int wpm = (int) ((chars / 5.0) / mins);
+int accuracy = (int) ((correct * 100.0) / words.size());
 ```
 
 **Result Persistence:**
 ```java
-TestResult result = new TestResult(wpm, accuracy, timeSeconds, 
-                                    correctWords, words.size(), isRussian);
-profileService.saveResult(result);
+Result r = new Result(wpm, accuracy, time, 
+                      correct, words.size(), rus);
+prof.add(r);
 ```
 
 **Profile Service Operations:**
-- `saveResult()` — Adds result to collection and persists to file
-- `loadResults()` — Loads results from file on application startup
-- `getBestWpm()` — Retrieves best WPM for specified language
-- `getAverageWpm()` — Calculates average WPM
-- `getRecentResults()` — Fetches N most recent test results
+- `add()` — Adds result to collection and persists to file
+- `load()` — Loads results from file on application startup
+- `best()` — Retrieves best WPM for specified language
+- `avgwpm()` — Calculates average WPM
+- `recent()` — Fetches N most recent test results
 
 ### 4. Testing and Debugging
 
@@ -511,101 +511,101 @@ profileService.saveResult(result);
 
 ## Source Code
 
-### TyperApp.java (Main Application Class - Excerpt)
+### App.java (Main Application Class - Excerpt)
 ```java
-public class TyperApp extends Application {
+public class App extends Application {
     // color
-    private static final String BG_COLOR = "#FDF0D5";
-    private static final String ACCENT_COLOR = "#075985ff";
-    private static final String TEXT_CORRECT = "#1275aaff";
-    private static final String TEXT_ERROR = "#9c0000ff";
+    String bg = "#FDF0D5";
+    String acc = "#075985ff";
+    String green = "#1275aaff";
+    String red = "#9c0000ff";
     
     // word pools
-    private static final String[] ENGLISH_WORDS = { /* 240 words */ };
-    private static final String[] RUSSIAN_WORDS = { /* 200 words */ };
+    String[] enw = { /* 240 words */ };
+    String[] ruw = { /* 200 words */ };
     
     // test state
-    private List<String> words;
-    private int currentWordIndex = 0;
-    private StringBuilder currentInput = new StringBuilder();
-    private List<Boolean> wordResults = new ArrayList<>();
-    private long startTime = 0;
-    private boolean testStarted = false;
+    List<String> words;
+    int idx = 0;
+    StringBuilder inp = new StringBuilder();
+    List<Boolean> results = new ArrayList<>();
+    long start = 0;
+    boolean started = false;
     
     // ui
-    private TextFlow wordsDisplay;
-    private VBox resultBox;
-    private VBox keyboardBox;
-    private Map<String, Label> keyLabels = new HashMap<>();
-    private ProfileService profileService;
+    TextFlow display;
+    VBox rbox;
+    VBox kbox;
+    Map<String, Label> klabs = new HashMap<>();
+    Profile prof;
     
     @Override
-    public void start(Stage primaryStage) {
-        profileService = new ProfileService();
-        words = generateWords();
+    public void start(Stage stage) {
+        prof = new Profile();
+        words = gen();
         
         // UI creation
         BorderPane root = new BorderPane();
         // ... component initialization ...
         
         // input handling
-        scene.setOnKeyTyped(event -> {
-            String character = event.getCharacter();
-            if (Character.isLetter(character.charAt(0))) {
-                if (!testStarted) {
-                    testStarted = true;
-                    startTime = System.currentTimeMillis();
+        scene.setOnKeyTyped(e -> {
+            String ch = e.getCharacter();
+            if (Character.isLetter(ch.charAt(0))) {
+                if (!started) {
+                    started = true;
+                    start = System.currentTimeMillis();
                 }
-                currentInput.append(character.charAt(0));
-                updateWordsDisplay();
+                inp.append(ch.charAt(0));
+                updisp();
             }
         });
         
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        stage.setScene(scene);
+        stage.show();
     }
     
-    private void updateWordsDisplay() {
-        wordsDisplay.getChildren().clear();
+    void updisp() {
+        display.getChildren().clear();
         
-        for (int wordIdx = 0; wordIdx < words.size(); wordIdx++) {
-            String word = words.get(wordIdx);
+        for (int w = 0; w < words.size(); w++) {
+            String word = words.get(w);
             
-            if (wordIdx == currentWordIndex) {
+            if (w == idx) {
                 // display current word with color coding
-                for (int charIdx = 0; charIdx < word.length(); charIdx++) {
-                    Text charText = new Text(String.valueOf(word.charAt(charIdx)));
+                for (int i = 0; i < word.length(); i++) {
+                    Text t = new Text(String.valueOf(word.charAt(i)));
                     
-                    if (charIdx < currentInput.length()) {
-                        if (currentInput.charAt(charIdx) == word.charAt(charIdx)) {
-                            charText.setFill(Color.web(TEXT_CORRECT));
+                    if (i < inp.length()) {
+                        if (inp.charAt(i) == word.charAt(i)) {
+                            t.setFill(Color.web(green));
                         } else {
-                            charText.setFill(Color.web(TEXT_ERROR));
+                            t.setFill(Color.web(red));
                         }
-                    } else if (charIdx == currentInput.length()) {
-                        charText.setUnderline(true); // Cursor
+                    } else if (i == inp.length()) {
+                        t.setUnderline(true); // Cursor
                     }
                     
-                    wordsDisplay.getChildren().add(charText);
+                    display.getChildren().add(t);
                 }
             }
             // ... processing other words ...
         }
     }
     
-    private void finishTest() {
-        long endTime = System.currentTimeMillis();
-        double timeSeconds = (endTime - startTime) / 1000.0;
+    void finish() {
+        long end = System.currentTimeMillis();
+        double time = (end - start) / 1000.0;
         
         // metrics calculation
-        int correctChars = /* calculation */;
-        int wpm = (int) ((correctChars / 5.0) / (timeSeconds / 60.0));
+        int chars = /* calculation */;
+        int wpm = (int) ((chars / 5.0) / (time / 60.0));
         int accuracy = /* percentage calculation */;
         
         // result persistence
-        TestResult result = new TestResult(wpm, accuracy, timeSeconds, 
-                                            correctWords, words.size(), isRussian);
-        profileService.saveResult(result);
+        Result r = new Result(wpm, accuracy, time, 
+                              correct, words.size(), rus);
+        prof.add(r);
         
         // display results with animation
         // ...
@@ -613,159 +613,159 @@ public class TyperApp extends Application {
 }
 ```
 
-### ProfileService.java (Data Management Service)
+### Profile.java (Data Management Service)
 ```java
-public class ProfileService {
-    private static final String DATA_DIR = System.getProperty("user.home") + "/.typer";
-    private static final String RESULTS_FILE = DATA_DIR + "/results.dat";
+public class Profile {
+    static final String dir = System.getProperty("user.home") + "/.typer";
+    static final String file = dir + "/results.dat";
     
-    private List<TestResult> results;
+    List<Result> list;
     
-    public ProfileService() {
-        this.results = new ArrayList<>();
-        ensureDataDirectory();
-        loadResults();
+    public Profile() {
+        this.list = new ArrayList<>();
+        checkdir();
+        load();
     }
     
-    public void saveResult(TestResult result) {
-        results.add(result);
-        saveResults();
+    public void add(Result r) {
+        list.add(r);
+        save();
     }
     
-    private void saveResults() {
+    void save() {
         try (ObjectOutputStream oos = new ObjectOutputStream(
-                new FileOutputStream(RESULTS_FILE))) {
-            oos.writeObject(results);
+                new FileOutputStream(file))) {
+            oos.writeObject(list);
         } catch (IOException e) {
             System.err.println("Error saving results: " + e.getMessage());
         }
     }
     
     @SuppressWarnings("unchecked")
-    private void loadResults() {
-        File file = new File(RESULTS_FILE);
-        if (!file.exists()) return;
+    void load() {
+        File f = new File(file);
+        if (!f.exists()) return;
         
         try (ObjectInputStream ois = new ObjectInputStream(
-                new FileInputStream(file))) {
-            results = (List<TestResult>) ois.readObject();
+                new FileInputStream(f))) {
+            list = (List<Result>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Error loading results: " + e.getMessage());
-            results = new ArrayList<>();
+            list = new ArrayList<>();
         }
     }
     
-    public TestResult getBestWpm(boolean russian) {
-        return results.stream()
-                .filter(r -> r.isRussian() == russian)
-                .max(Comparator.comparingInt(TestResult::getWpm))
+    public Result best(boolean rus) {
+        return list.stream()
+                .filter(r -> r.rus() == rus)
+                .max(Comparator.comparingInt(Result::wpm))
                 .orElse(null);
     }
     
-    public List<TestResult> getRecentResults(int count) {
-        return results.stream()
-                .sorted(Comparator.comparing(TestResult::getTimestamp).reversed())
-                .limit(count)
+    public List<Result> recent(int n) {
+        return list.stream()
+                .sorted(Comparator.comparing(Result::date).reversed())
+                .limit(n)
                 .collect(Collectors.toList());
     }
 }
 ```
 
-### TestResult.java (Data Model)
+### Result.java (Data Model)
 ```java
-public class TestResult implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Result implements Serializable {
+    static final long serialVersionUID = 1L;
     
-    private int wpm;
-    private int accuracy;
-    private double timeSeconds;
-    private int correctWords;
-    private int totalWords;
-    private boolean isRussian;
-    private LocalDateTime timestamp;
+    int wpm;
+    int acc;
+    double time;
+    int correct;
+    int total;
+    boolean rus;
+    LocalDateTime date;
     
-    public TestResult(int wpm, int accuracy, double timeSeconds, 
-                      int correctWords, int totalWords, boolean isRussian) {
+    public Result(int wpm, int acc, double time, 
+                  int correct, int total, boolean rus) {
         this.wpm = wpm;
-        this.accuracy = accuracy;
-        this.timeSeconds = timeSeconds;
-        this.correctWords = correctWords;
-        this.totalWords = totalWords;
-        this.isRussian = isRussian;
-        this.timestamp = LocalDateTime.now();
+        this.acc = acc;
+        this.time = time;
+        this.correct = correct;
+        this.total = total;
+        this.rus = rus;
+        this.date = LocalDateTime.now();
     }
     
-    public String getFormattedDate() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-        return timestamp.format(formatter);
+    public String fdate() {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+        return date.format(fmt);
     }
     
-    // getters...
+    // getters: wpm(), acc(), time(), correct(), total(), rus(), date()
 }
 ```
 
-### KeyboardGuide.java (Learning Mode Component - Excerpt)
+### Keyboard.java (Learning Mode Component - Excerpt)
 ```java
-public class KeyboardGuide extends VBox {
-    private Map<String, StackPane> keyButtons = new HashMap<>();
-    private Map<String, String> fingerColors = new HashMap<>();
-    private boolean isRussian;
+public class Keyboard extends VBox {
+    Map<String, StackPane> keys = new HashMap<>();
+    Map<String, String> colors = new HashMap<>();
+    boolean rus;
     
-    public KeyboardGuide(boolean isRussian) {
-        this.isRussian = isRussian;
-        setupColors();
-        createKeyboardVisualization();
+    public Keyboard(boolean rus) {
+        this.rus = rus;
+        initc();
+        build();
     }
     
-    private void setupColors() {
+    void initc() {
         // Left hand color mapping
-        fingerColors.put("Q", "#FF6B6B"); // Red - left pinky
-        fingerColors.put("W", "#FFA500"); // Orange - left ring
-        fingerColors.put("E", "#FFD700"); // Yellow - left middle
-        fingerColors.put("R", "#90EE90"); // Green - left index
+        colors.put("Q", "#FF6B6B"); // Red - left pinky
+        colors.put("W", "#FFA500"); // Orange - left ring
+        colors.put("E", "#FFD700"); // Yellow - left middle
+        colors.put("R", "#90EE90"); // Green - left index
         // ... 100+ key mappings ...
     }
     
-    private VBox createKeyboard() {
+    VBox mkb() {
         // Creates full keyboard layout with color-coded keys
         // Each key is a StackPane with Rectangle background and Label text
         // Returns VBox containing 4 rows (3 letter rows + spacebar)
     }
     
-    private HBox createHands() {
+    HBox mhand() {
         // Creates visual representation of hands
         // Shows 4 fingers per hand with matching colors
         // Includes finger labels (Pinky, Ring, Middle, Index)
     }
     
-    public void highlightKey(String key) {
-        StackPane keyPane = keyButtons.get(key.toUpperCase());
-        if (keyPane != null) {
+    public void hl(String k) {
+        StackPane kp = keys.get(k.toUpperCase());
+        if (kp != null) {
             // Scale animation - press effect
-            ScaleTransition scale = new ScaleTransition(Duration.millis(100), keyPane);
-            scale.setToX(0.95);
-            scale.setToY(0.95);
-            scale.setAutoReverse(true);
-            scale.setCycleCount(2);
+            ScaleTransition sc = new ScaleTransition(Duration.millis(100), kp);
+            sc.setToX(0.95);
+            sc.setToY(0.95);
+            sc.setAutoReverse(true);
+            sc.setCycleCount(2);
             
             // Color brightening - highlight effect
-            Rectangle bg = (Rectangle) keyPane.getChildren().get(0);
-            FillTransition fill = new FillTransition(Duration.millis(100), bg);
-            fill.setToValue(((Color) bg.getFill()).brighter());
-            fill.setAutoReverse(true);
-            fill.setCycleCount(2);
+            Rectangle bg = (Rectangle) kp.getChildren().get(0);
+            FillTransition fl = new FillTransition(Duration.millis(100), bg);
+            fl.setToValue(((Color) bg.getFill()).brighter());
+            fl.setAutoReverse(true);
+            fl.setCycleCount(2);
             
-            new ParallelTransition(scale, fill).play();
+            new ParallelTransition(sc, fl).play();
         }
     }
 }
 ```
 
 **Complete project source code is available in the repository:**
-- [TyperApp.java](typer/src/main/java/com/typer/TyperApp.java) — 1,100+ lines
-- [KeyboardGuide.java](typer/src/main/java/com/typer/KeyboardGuide.java) — 350+ lines
-- [ProfileService.java](typer/src/main/java/com/typer/ProfileService.java) — 114 lines
-- [TestResult.java](typer/src/main/java/com/typer/TestResult.java) — 65 lines
+- [App.java](typer/src/main/java/com/typer/App.java) — 1,200+ lines
+- [Keyboard.java](typer/src/main/java/com/typer/Keyboard.java) — 290 lines
+- [Profile.java](typer/src/main/java/com/typer/Profile.java) — 103 lines
+- [Result.java](typer/src/main/java/com/typer/Result.java) — 44 lines
 - [pom.xml](typer/pom.xml) — Maven configuration
 
 ---
@@ -775,7 +775,7 @@ public class KeyboardGuide extends VBox {
 ### Challenge 1: TextFlow Update Performance
 **Problem:** Each character input triggered complete recreation of all Text objects in the TextFlow, resulting in noticeable delays and degraded user experience.
 
-**Solution:** Optimized the `updateWordsDisplay()` method with conditional rendering to update only modified portions of the display. Additionally, animations were applied exclusively to the most recently typed character, significantly reducing UI thread load and improving responsiveness.
+**Solution:** Optimized the `updisp()` method with conditional rendering to update only modified portions of the display. Additionally, animations were applied exclusively to the most recently typed character, significantly reducing UI thread load and improving responsiveness.
 
 ### Challenge 2: Keyboard Highlighting for Russian Layout
 **Problem:** Windows keyboard events return key codes corresponding to the English layout even when Russian input is active, causing incorrect key highlighting in the visual keyboard.
@@ -790,7 +790,7 @@ public class KeyboardGuide extends VBox {
 ### Challenge 4: Automatic Final Word Completion
 **Problem:** After typing the final word, users were required to press the spacebar, which was not immediately obvious and created a confusing user experience.
 
-**Solution:** Implemented a conditional check `currentWordIndex == words.size() - 1` in the `onKeyTyped` handler that automatically invokes `processWordComplete()` when the length of the final word is reached, providing a more intuitive test completion flow.
+**Solution:** Implemented a conditional check `idx == words.size() - 1` in the `onKeyTyped` handler that automatically invokes `next()` when the length of the final word is reached, providing a more intuitive test completion flow.
 
 ### Challenge 5: Animation Conflicts
 **Problem:** Multiple simultaneous animations (fade, scale) occasionally conflicted, creating visual artifacts and inconsistent behavior.

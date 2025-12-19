@@ -1,4 +1,4 @@
-com\typer\TestResult.class
-com\typer\KeyboardGuide.class
-com\typer\TyperApp.class
-com\typer\ProfileService.class
+com\typer\App.class
+com\typer\Profile.class
+com\typer\Keyboard.class
+com\typer\Result.class
